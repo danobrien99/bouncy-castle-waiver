@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bouncy Castle Waiver — Block Party</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      color: white;
+      padding: 24px 20px 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header .emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+    header h1 { font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+    header p  { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
+
+    main {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .card h2 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #f97316;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #111;
+      background: #fafafa;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #f97316;
+      background: white;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .waiver-text {
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: #4b5563;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 200px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .waiver-text p { margin-bottom: 8px; }
+    .waiver-text p:last-child { margin-bottom: 0; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      accent-color: #f97316;
+      cursor: pointer;
+    }
+
+    .checkbox-row span {
+      font-size: 0.82rem;
+      color: #374151;
+      line-height: 1.4;
+    }
+
+    /* Signature pad */
+    .sig-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    #sig-canvas {
+      width: 100%;
+      height: 150px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      background: #fafafa;
+      touch-action: none;
+      cursor: crosshair;
+      display: block;
+    }
+
+    #sig-canvas.has-sig { border-color: #f97316; background: white; }
+
+    .sig-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .btn-clear:hover { color: #ef4444; background: #fee2e2; }
+
+    .sig-hint {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.35);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .submit-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+    .required-note {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* Success screen */
+    #success-screen {
+      display: none;
+      text-align: center;
+      padding: 60px 24px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    #success-screen .check { font-size: 4rem; margin-bottom: 16px; }
+    #success-screen h2 { font-size: 1.4rem; font-weight: 700; color: #16a34a; margin-bottom: 10px; }
+    #success-screen p  { font-size: 0.9rem; color: #6b7280; line-height: 1.5; margin-bottom: 8px; }
+    #success-screen .ref {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 16px;
+      padding: 10px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn-another {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 12px 28px;
+      background: #f97316;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Error highlight */
+    .field-error { border-color: #ef4444 !important; background: #fff5f5 !important; }
+    .error-msg { color: #ef4444; font-size: 0.75rem; margin-top: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="emoji">🏰</span>
+  <h1>Bouncy Castle Waiver</h1>
+  <p>Block Party — Please read and sign before your child participates</p>
+</header>
+
+<!-- FORM -->
+<div id="form-view">
+  <main>
+    <form id="waiver-form" novalidate>
+
+      <!-- Parent / Guardian Info -->
+      <div class="card">
+        <h2>Parent / Guardian Information</h2>
+
+        <label for="parent-name">Full Name *</label>
+        <input type="text" id="parent-name" placeholder="Jane Smith" autocomplete="name" />
+
+        <label for="parent-email">Email Address *</label>
+        <input type="email" id="parent-email" placeholder="jane@example.com" autocomplete="email" />
+
+        <label for="parent-phone">Phone Number</label>
+        <input type="tel" id="parent-phone" placeholder="(555) 000-0000" autocomplete="tel" />
+
+        <label for="parent-address">Home Address</label>
+        <input type="text" id="parent-address" placeholder="123 Main St, Springfield" autocomplete="street-address" />
+      </div>
+
+      <!-- Child Info -->
+      <div class="card">
+        <h2>Child Information</h2>
+
+        <label for="child-name">Child's Full Name *</label>
+        <input type="text" id="child-name" placeholder="Alex Smith" />
+
+        <div class="row-2">
+          <div>
+            <label for="child-age">Age *</label>
+            <input type="number" id="child-age" placeholder="6" min="1" max="17" />
+          </div>
+          <div>
+            <label for="child-dob">Date of Birth</label>
+            <input type="date" id="child-dob" />
+          </div>
+        </div>
+
+        <label for="child-weight">Approximate Weight (lbs)</label>
+        <input type="number" id="child-weight" placeholder="60" min="1" max="300" />
+
+        <label for="medical-notes">Medical Conditions / Allergies (if any)</label>
+        <input type="text" id="medical-notes" placeholder="None" />
+
+        <label for="emergency-contact">Emergency Contact Name &amp; Phone *</label>
+        <input type="text" id="emergency-contact" placeholder="John Smith — (555) 111-2222" />
+      </div>
+
+      <!-- Waiver Text -->
+      <div class="card">
+        <h2>Liability Waiver &amp; Release</h2>
+
+        <div class="waiver-text">
+          <p><strong>PLEASE READ CAREFULLY BEFORE SIGNING.</strong> This is a legally binding document.</p>
+
+          <p><strong>1. Assumption of Risk.</strong> I understand that the use of inflatable bounce equipment ("Bouncy Castle") involves inherent risks of injury, including but not limited to falls, collisions, and physical overexertion. I voluntarily assume all risks of injury or illness associated with my child's participation in this activity.</p>
+
+          <p><strong>2. Release of Liability.</strong> In consideration of my child's participation, I, on behalf of myself, my child, our heirs, assigns, and personal representatives, hereby release, waive, discharge, and covenant not to sue the event organizers, property owners, volunteers, sponsors, and all other participants (collectively "Released Parties") from any and all liability, claims, demands, actions, or causes of action, arising out of or related to any loss, damage, or injury that may be sustained while using the Bouncy Castle.</p>
+
+          <p><strong>3. Indemnification.</strong> I agree to indemnify and hold harmless the Released Parties from any loss, liability, damage, or cost they may incur due to my or my child's participation in this activity.</p>
+
+          <p><strong>4. Rules &amp; Supervision.</strong> I agree to ensure my child follows all posted safety rules. I accept full responsibility for supervising my child during their use of the Bouncy Castle. I understand that children must be supervised by a parent or guardian at all times.</p>
+
+          <p><strong>5. Safety Rules.</strong> I acknowledge and agree that my child will: (a) remove shoes, glasses, and sharp objects before entering; (b) not flip, wrestle, or engage in rough play; (c) not exceed the posted weight or capacity limits; (d) exit immediately if asked to do so; (e) not climb on walls or netting.</p>
+
+          <p><strong>6. Health Conditions.</strong> I certify that my child is in good physical health and has no medical conditions that would make participation in this activity unsafe, unless disclosed above.</p>
+
+          <p><strong>7. Photo / Media Release.</strong> I consent to photographs or videos being taken of my child during the event for personal, non-commercial sharing purposes.</p>
+
+          <p><strong>8. Severability.</strong> If any provision of this waiver is found to be unenforceable, the remaining provisions shall remain in full force and effect.</p>
+
+          <p>I have read this agreement, fully understand its terms, and sign it freely and voluntarily without any inducement.</p>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="agree-waiver" />
+          <span>I have read, understand, and agree to the terms of this Liability Waiver &amp; Release on behalf of myself and my child. *</span>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="agree-rules" />
+          <span>I confirm my child will follow all safety rules and will be supervised at all times. *</span>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="agree-age" />
+          <span>I am the parent or legal guardian of the child named above and am 18 years of age or older. *</span>
+        </div>
+      </div>
+
+      <!-- Signature -->
+      <div class="card">
+        <h2>Signature</h2>
+
+        <div class="sig-label">Sign below using your finger or stylus *</div>
+        <canvas id="sig-canvas" width="500" height="150"></canvas>
+        <div class="sig-actions">
+          <button type="button" class="btn-clear" id="clear-sig">Clear</button>
+        </div>
+        <div class="sig-hint">Draw your signature in the box above</div>
+
+        <label for="sig-date" style="margin-top:14px;">Date *</label>
+        <input type="date" id="sig-date" />
+      </div>
+
+      <button type="submit" class="submit-btn">✅ Submit Waiver</button>
+      <p class="required-note">* Required fields</p>
+
+    </form>
+  </main>
+</div>
+
+<!-- SUCCESS -->
+<div id="success-screen">
+  <div class="check">✅</div>
+  <h2>Waiver Signed!</h2>
+  <p>Thank you, <strong id="success-name"></strong>.</p>
+  <p>Your child <strong id="success-child"></strong> is cleared to bounce!</p>
+  <div class="ref" id="success-ref"></div>
+  <button class="btn-another" onclick="resetForm()">Sign Another Waiver</button>
+</div>
+
+<script>
+  // ── Signature Pad ──────────────────────────────────────────
+  const canvas = document.getElementById('sig-canvas');
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  let hasSig = false;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = '#1a202c';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src  = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  }
+
+  canvas.addEventListener('mousedown',  e => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+  canvas.addEventListener('mousemove',  e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; canvas.classList.add('has-sig'); });
+  canvas.addEventListener('mouseup',    () => drawing = false);
+  canvas.addEventListener('mouseleave', () => drawing = false);
+
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; canvas.classList.add('has-sig'); }, { passive: false });
+  canvas.addEventListener('touchend',   e => { e.preventDefault(); drawing = false; }, { passive: false });
+
+  document.getElementById('clear-sig').addEventListener('click', () => {
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    hasSig = false;
+    canvas.classList.remove('has-sig');
+  });
+
+  // ── Auto-fill today's date ─────────────────────────────────
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('sig-date').value = today;
+
+  // ── Form validation & submit ───────────────────────────────
+  function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+    document.querySelectorAll('.error-msg').forEach(el => el.remove());
+  }
+
+  function markError(id, msg) {
+    const el = document.getElementById(id);
+    el.classList.add('field-error');
+    const err = document.createElement('div');
+    err.className = 'error-msg';
+    err.textContent = msg;
+    el.parentNode.insertBefore(err, el.nextSibling);
+    return el;
+  }
+
+  document.getElementById('waiver-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors();
+
+    let firstError = null;
+    const required = [
+      { id: 'parent-name',       msg: 'Please enter your full name.' },
+      { id: 'parent-email',      msg: 'Please enter your email address.' },
+      { id: 'child-name',        msg: "Please enter your child's name." },
+      { id: 'child-age',         msg: "Please enter your child's age." },
+      { id: 'emergency-contact', msg: 'Please enter an emergency contact.' },
+      { id: 'sig-date',          msg: 'Please enter today\'s date.' },
+    ];
+
+    required.forEach(({ id, msg }) => {
+      const val = document.getElementById(id).value.trim();
+      if (!val) {
+        const el = markError(id, msg);
+        if (!firstError) firstError = el;
+      }
+    });
+
+    const checkboxes = [
+      { id: 'agree-waiver', msg: 'You must agree to the waiver.' },
+      { id: 'agree-rules',  msg: 'You must confirm the safety rules.' },
+      { id: 'agree-age',    msg: 'You must confirm you are the parent/guardian.' },
+    ];
+
+    checkboxes.forEach(({ id, msg }) => {
+      const el = document.getElementById(id);
+      if (!el.checked) {
+        const err = document.createElement('div');
+        err.className = 'error-msg';
+        err.textContent = msg;
+        el.parentNode.insertBefore(err, el.nextSibling);
+        if (!firstError) firstError = el;
+      }
+    });
+
+    if (!hasSig) {
+      const err = document.createElement('div');
+      err.className = 'error-msg';
+      err.textContent = 'Please sign in the box above.';
+      canvas.parentNode.insertBefore(err, canvas.nextSibling);
+      if (!firstError) firstError = canvas;
+    }
+
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Collect data
+    const entry = {
+      ref:              'W-' + Date.now().toString(36).toUpperCase(),
+      timestamp:        new Date().toISOString(),
+      parentName:       document.getElementById('parent-name').value.trim(),
+      parentEmail:      document.getElementById('parent-email').value.trim(),
+      parentPhone:      document.getElementById('parent-phone').value.trim(),
+      parentAddress:    document.getElementById('parent-address').value.trim(),
+      childName:        document.getElementById('child-name').value.trim(),
+      childAge:         document.getElementById('child-age').value,
+      childDob:         document.getElementById('child-dob').value,
+      childWeight:      document.getElementById('child-weight').value,
+      medicalNotes:     document.getElementById('medical-notes').value.trim(),
+      emergencyContact: document.getElementById('emergency-contact').value.trim(),
+      signatureData:    canvas.toDataURL('image/png'),
+      signedDate:       document.getElementById('sig-date').value,
+    };
+
+    // Save to localStorage (organizer can retrieve later)
+    const stored = JSON.parse(localStorage.getItem('waivers') || '[]');
+    stored.push(entry);
+    localStorage.setItem('waivers', JSON.stringify(stored));
+
+    // Show success
+    document.getElementById('form-view').style.display = 'none';
+    document.getElementById('success-name').textContent  = entry.parentName;
+    document.getElementById('success-child').textContent = entry.childName;
+    document.getElementById('success-ref').textContent   =
+      'Reference: ' + entry.ref + '  ·  Signed at ' + new Date(entry.timestamp).toLocaleString();
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo(0, 0);
+  });
+
+  function resetForm() {
+    document.getElementById('waiver-form').reset();
+    document.getElementById('sig-date').value = today;
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    hasSig = false;
+    canvas.classList.remove('has-sig');
+    clearErrors();
+    document.getElementById('success-screen').style.display = 'none';
+    document.getElementById('form-view').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
