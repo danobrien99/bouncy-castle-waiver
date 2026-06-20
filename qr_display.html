@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bouncy Castle — Scan to Sign Waiver</title>
+  <title>Winona Ave Block Party — Bouncy Castle Waiver</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -23,8 +23,9 @@
       width: 100%;
     }
     .emoji { font-size: 3.5rem; margin-bottom: 10px; }
-    h1 { font-size: 1.8rem; font-weight: 800; color: #1a202c; margin-bottom: 4px; }
-    .tagline { font-size: 0.95rem; color: #6b7280; margin-bottom: 28px; }
+    h1 { font-size: 1.7rem; font-weight: 800; color: #1a202c; margin-bottom: 2px; }
+    h2 { font-size: 1.1rem; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .tagline { font-size: 0.9rem; color: #6b7280; margin-bottom: 28px; }
 
     #qr-wrap {
       display: flex; align-items: center; justify-content: center;
@@ -35,7 +36,7 @@
       padding: 10px;
       background: white;
     }
-    #qr-wrap canvas, #qr-wrap img { max-width: 100%; max-height: 100%; }
+    #qr-wrap img { width: 220px; height: 220px; display: block; }
 
     .instruction {
       background: #fff7ed;
@@ -48,39 +49,15 @@
       margin-bottom: 20px;
     }
 
-    .url-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-      align-items: center;
+    .url-text {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      word-break: break-all;
+      margin-bottom: 16px;
     }
-    .url-row input {
-      flex: 1;
-      padding: 8px 10px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      color: #374151;
-    }
-    .url-row input:focus { outline: none; border-color: #f97316; }
-    .url-row button {
-      padding: 8px 14px;
-      background: #f97316;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .url-row button:hover { background: #ea6c0a; }
-
-    .hint { font-size: 0.72rem; color: #9ca3af; margin-bottom: 6px; }
 
     .print-btn {
       display: inline-block;
-      margin-top: 6px;
       padding: 10px 24px;
       background: #f0fdf4;
       color: #166534;
@@ -89,30 +66,25 @@
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      text-decoration: none;
     }
     .print-btn:hover { background: #dcfce7; }
 
     @media print {
       body { background: white; }
       .box { box-shadow: none; border: 2px solid #e5e7eb; }
-      .url-row, .hint, .print-btn { display: none !important; }
+      .print-btn { display: none; }
     }
   </style>
-
-  <!-- qrcodejs: MIT License, loaded from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-          crossorigin="anonymous"
-          onerror="loadFallbackQR()"></script>
 </head>
 <body>
   <div class="box">
     <div class="emoji">🏰</div>
-    <h1>Bouncy Castle Waiver</h1>
+    <h1>Winona Ave Block Party</h1>
+    <h2>Bouncy Castle Waiver</h2>
     <p class="tagline">Parents must sign before children can bounce!</p>
 
     <div id="qr-wrap">
-      <div id="qrcode"></div>
+      <img id="qr-img" alt="QR Code" />
     </div>
 
     <div class="instruction">
@@ -120,70 +92,20 @@
       then tap the link to open and sign the waiver.
     </div>
 
-    <p class="hint">Waiver URL (edit if your IP is different):</p>
-    <div class="url-row">
-      <input type="text" id="url-input" placeholder="http://192.168.1.x:8080/waiver.html" />
-      <button onclick="updateQR()">Update QR</button>
-    </div>
+    <p class="url-text" id="url-display"></p>
 
     <button class="print-btn" onclick="window.print()">🖨️ Print this page</button>
   </div>
 
   <script>
-    // Read URL from hash if provided (set by start.py when opening browser)
-    const hashUrl = location.hash ? decodeURIComponent(location.hash.slice(1)) : null;
+    const WAIVER_URL = 'https://bouncy-castle-waiver.vercel.app/waiver.html';
 
-    // Try to guess a reasonable default local URL
-    const guessedUrl = hashUrl
-      || (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1'
-          ? `${location.protocol}//${location.hostname}/waiver.html`
-          : 'http://192.168.1.x:8080/waiver.html');
+    document.getElementById('url-display').textContent = WAIVER_URL;
 
-    document.getElementById('url-input').value = guessedUrl;
-
-    let qrInstance = null;
-
-    function makeQR(url) {
-      const container = document.getElementById('qrcode');
-      container.innerHTML = '';
-      if (typeof QRCode !== 'undefined') {
-        qrInstance = new QRCode(container, {
-          text: url,
-          width:  220,
-          height: 220,
-          colorDark:  '#1a202c',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.H,
-        });
-      } else {
-        // Fallback: show URL as text with instructions
-        container.innerHTML = `<div style="font-size:0.7rem;color:#6b7280;padding:10px;word-break:break-all;">
-          QR library unavailable.<br><br>
-          <strong>Direct URL:</strong><br>${url}</div>`;
-      }
-    }
-
-    function updateQR() {
-      const url = document.getElementById('url-input').value.trim();
-      if (url) makeQR(url);
-    }
-
-    function loadFallbackQR() {
-      // If CDN failed, show a message
-      console.log('QR CDN unavailable — showing URL as text fallback.');
-      const url = document.getElementById('url-input').value.trim() || guessedUrl;
-      const container = document.getElementById('qrcode');
-      container.innerHTML = `
-        <div style="text-align:center;padding:10px;">
-          <p style="font-size:0.7rem;color:#374151;margin-bottom:8px;">
-            <strong>Type this URL on your phone:</strong>
-          </p>
-          <p style="font-size:0.75rem;color:#f97316;font-weight:700;word-break:break-all;">${url}</p>
-        </div>`;
-    }
-
-    // Initial render
-    makeQR(guessedUrl);
+    // Use qrserver.com API to generate QR — simple, reliable, no JS library needed
+    const encoded = encodeURIComponent(WAIVER_URL);
+    document.getElementById('qr-img').src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encoded}`;
   </script>
 </body>
 </html>
