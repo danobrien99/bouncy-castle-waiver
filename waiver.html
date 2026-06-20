@@ -498,37 +498,58 @@
       signedDate:       document.getElementById('sig-date').value,
     };
 
-    // Submit to Formspree as JSON
+    // Submit to Formspree
+    const payload = {
+      '_subject':           'New Waiver: ' + entry.childName + ' (' + entry.parentName + ')',
+      'Reference':          entry.ref,
+      'Submitted':          new Date(entry.timestamp).toLocaleString(),
+      'Parent Name':        entry.parentName,
+      'Parent Email':       entry.parentEmail,
+      'Parent Phone':       entry.parentPhone,
+      'Parent Address':     entry.parentAddress,
+      'Child Name':         entry.childName,
+      'Child Age':          entry.childAge,
+      'Child DOB':          entry.childDob,
+      'Child Weight (lbs)': entry.childWeight,
+      'Medical Notes':      entry.medicalNotes || 'None',
+      'Emergency Contact':  entry.emergencyContact,
+      'Signed Date':        entry.signedDate,
+      'Signature':          entry.signatureData,
+    };
+
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.textContent = 'Submitting…';
+    submitBtn.disabled = true;
+
     fetch('https://formspree.io/f/xqevzkvn', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        '_subject':           'New Waiver: ' + entry.childName + ' (' + entry.parentName + ')',
-        'Reference':          entry.ref,
-        'Submitted':          new Date(entry.timestamp).toLocaleString(),
-        'Parent Name':        entry.parentName,
-        'Parent Email':       entry.parentEmail,
-        'Parent Phone':       entry.parentPhone,
-        'Parent Address':     entry.parentAddress,
-        'Child Name':         entry.childName,
-        'Child Age':          entry.childAge,
-        'Child DOB':          entry.childDob,
-        'Child Weight (lbs)': entry.childWeight,
-        'Medical Notes':      entry.medicalNotes || 'None',
-        'Emergency Contact':  entry.emergencyContact,
-        'Signed Date':        entry.signedDate,
-        'Signature (base64)': canvas.toDataURL('image/png'),
-      })
-    }).catch(() => {});
-
-    // Show success
-    document.getElementById('form-view').style.display = 'none';
-    document.getElementById('success-name').textContent  = entry.parentName;
-    document.getElementById('success-child').textContent = entry.childName;
-    document.getElementById('success-ref').textContent   =
-      'Reference: ' + entry.ref + '  ·  Signed at ' + new Date(entry.timestamp).toLocaleString();
-    document.getElementById('success-screen').style.display = 'block';
-    window.scrollTo(0, 0);
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        console.error('Formspree error:', data);
+        alert('Submission error: ' + (data.error || JSON.stringify(data)) + '\n\nPlease screenshot this and tell the organizer.');
+        submitBtn.textContent = '✅ Submit Waiver';
+        submitBtn.disabled = false;
+        return;
+      }
+      // Show success
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('success-name').textContent  = entry.parentName;
+      document.getElementById('success-child').textContent = entry.childName;
+      document.getElementById('success-ref').textContent   =
+        'Reference: ' + entry.ref + '  ·  Signed at ' + new Date(entry.timestamp).toLocaleString();
+      document.getElementById('success-screen').style.display = 'block';
+      window.scrollTo(0, 0);
+    })
+    .catch(err => {
+      console.error('Network error:', err);
+      alert('Network error — please check your connection and try again.');
+      submitBtn.textContent = '✅ Submit Waiver';
+      submitBtn.disabled = false;
+    });
   });
 
   function resetForm() {
