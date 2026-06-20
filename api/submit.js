@@ -6,6 +6,9 @@ export default async function handler(req, res) {
   const d = req.body;
   const sig = d['Signature'] || '';
 
+  // Strip the data URI prefix to get raw base64 for email attachment
+  const sigBase64 = sig.replace(/^data:image\/png;base64,/, '');
+
   // ── Email to organizer — full details + signature ──────────
   const organizerHtml = `
 <!DOCTYPE html>
@@ -54,7 +57,7 @@ export default async function handler(req, res) {
     <tr><td>Signed Date</td><td>${d['Signed Date'] || '—'}</td></tr>
   </table>
   ${sig
-    ? `<div class="sig-box"><img src="${sig}" alt="Signature" /></div>`
+    ? `<div class="sig-box"><img src="cid:signature" alt="Signature" /></div>`
     : '<p style="color:#9ca3af;font-style:italic;">No signature captured.</p>'
   }
 </body>
@@ -122,6 +125,11 @@ export default async function handler(req, res) {
           to: [to],
           subject,
           html,
+          attachments: sigBase64 ? [{
+            filename: `signature-${d['Reference'] || 'unknown'}.png`,
+            content: sigBase64,
+            content_id: 'signature',
+          }] : [],
         }),
       });
 
