@@ -498,10 +498,28 @@
       signedDate:       document.getElementById('sig-date').value,
     };
 
-    // Save to localStorage (organizer can retrieve later)
-    const stored = JSON.parse(localStorage.getItem('waivers') || '[]');
-    stored.push(entry);
-    localStorage.setItem('waivers', JSON.stringify(stored));
+    // Submit to Formspree
+    const formData = new FormData();
+    formData.append('_subject',          'New Waiver: ' + entry.childName + ' (' + entry.parentName + ')');
+    formData.append('Reference',         entry.ref);
+    formData.append('Submitted',         new Date(entry.timestamp).toLocaleString());
+    formData.append('Parent Name',       entry.parentName);
+    formData.append('Parent Email',      entry.parentEmail);
+    formData.append('Parent Phone',      entry.parentPhone);
+    formData.append('Parent Address',    entry.parentAddress);
+    formData.append('Child Name',        entry.childName);
+    formData.append('Child Age',         entry.childAge);
+    formData.append('Child DOB',         entry.childDob);
+    formData.append('Child Weight (lbs)', entry.childWeight);
+    formData.append('Medical Notes',     entry.medicalNotes || 'None');
+    formData.append('Emergency Contact', entry.emergencyContact);
+    formData.append('Signed Date',       entry.signedDate);
+
+    fetch('https://formspree.io/f/xqevzkvn', {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    }).catch(() => {}); // fail silently — success screen still shows
 
     // Show success
     document.getElementById('form-view').style.display = 'none';
