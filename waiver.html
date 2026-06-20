@@ -498,34 +498,28 @@
       signedDate:       document.getElementById('sig-date').value,
     };
 
-    // Submit to Formspree (including signature as image file)
-    function buildAndSubmit(signatureBlob) {
-      const formData = new FormData();
-      formData.append('_subject',           'New Waiver: ' + entry.childName + ' (' + entry.parentName + ')');
-      formData.append('Reference',          entry.ref);
-      formData.append('Submitted',          new Date(entry.timestamp).toLocaleString());
-      formData.append('Parent Name',        entry.parentName);
-      formData.append('Parent Email',       entry.parentEmail);
-      formData.append('Parent Phone',       entry.parentPhone);
-      formData.append('Parent Address',     entry.parentAddress);
-      formData.append('Child Name',         entry.childName);
-      formData.append('Child Age',          entry.childAge);
-      formData.append('Child DOB',          entry.childDob);
-      formData.append('Child Weight (lbs)', entry.childWeight);
-      formData.append('Medical Notes',      entry.medicalNotes || 'None');
-      formData.append('Emergency Contact',  entry.emergencyContact);
-      formData.append('Signed Date',        entry.signedDate);
-      if (signatureBlob) {
-        formData.append('Signature', signatureBlob, 'signature-' + entry.ref + '.png');
-      }
-      fetch('https://formspree.io/f/xqevzkvn', {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' }
-      }).catch(() => {}); // fail silently — success screen still shows
-    }
-
-    canvas.toBlob(blob => buildAndSubmit(blob), 'image/png');
+    // Submit to Formspree as JSON
+    fetch('https://formspree.io/f/xqevzkvn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        '_subject':           'New Waiver: ' + entry.childName + ' (' + entry.parentName + ')',
+        'Reference':          entry.ref,
+        'Submitted':          new Date(entry.timestamp).toLocaleString(),
+        'Parent Name':        entry.parentName,
+        'Parent Email':       entry.parentEmail,
+        'Parent Phone':       entry.parentPhone,
+        'Parent Address':     entry.parentAddress,
+        'Child Name':         entry.childName,
+        'Child Age':          entry.childAge,
+        'Child DOB':          entry.childDob,
+        'Child Weight (lbs)': entry.childWeight,
+        'Medical Notes':      entry.medicalNotes || 'None',
+        'Emergency Contact':  entry.emergencyContact,
+        'Signed Date':        entry.signedDate,
+        'Signature (base64)': canvas.toDataURL('image/png'),
+      })
+    }).catch(() => {});
 
     // Show success
     document.getElementById('form-view').style.display = 'none';
